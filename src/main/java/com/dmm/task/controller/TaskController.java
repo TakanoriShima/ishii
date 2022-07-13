@@ -30,14 +30,14 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@GetMapping("/posts")
-	public String posts(Model model) {
+	@GetMapping("/tasks")
+	public String tasks(Model model) {
 		// 逆順で投稿をすべて取得する
 		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 //    Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		model.addAttribute("tasks", list);
 		TaskForm postForm = new TaskForm();
-		model.addAttribute("postForm", postForm);
+		model.addAttribute("taskForm", postForm);
 		return "/posts";
 	}
 
@@ -48,16 +48,16 @@ public class TaskController {
 	 * @param user     ユーザー情報
 	 * @return 遷移先
 	 */
-	@PostMapping("/posts/create")
+	@PostMapping("/main/create/{date}")
 	public String create(@Validated TaskForm postForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
 		if (bindingResult.hasErrors()) {
 			// エラーがある場合は投稿登録画面を返す
-			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
-			model.addAttribute("posts", list);
-			model.addAttribute("postForm", postForm);
-			return "/posts";
+			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
+			model.addAttribute("tasks", list);
+			model.addAttribute("taskForm", postForm);
+			return "/main/create/{date}";
 		}
 
 		Tasks post = new Tasks();
@@ -68,7 +68,7 @@ public class TaskController {
 
 		repo.save(post);
 
-		return "redirect:/posts";
+		return "redirect:/main";
 	}
 
 	/**
@@ -77,9 +77,9 @@ public class TaskController {
 	 * @param id 投稿ID
 	 * @return 遷移先
 	 */
-	@PostMapping("/posts/delete/{id}")
+	@PostMapping("/main/delete/{id}")
 	public String delete(@PathVariable Integer id) {
 		repo.deleteById(id);
-		return "redirect:/posts";
+		return "redirect:/main";
 	}
 }
