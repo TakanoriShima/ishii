@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.dmm.task.data.entity.Posts;
-import com.dmm.task.data.repository.PostsRepository;
-import com.dmm.task.form.PostForm;
+import com.dmm.task.data.entity.Tasks;
+import com.dmm.task.data.repository.TasksRepository;
+import com.dmm.task.form.TaskForm;
 import com.dmm.task.service.AccountUserDetails;
 @Controller
-public class PostController {
+public class TaskController {
 
 	@Autowired
-	private PostsRepository repo;
+	private TasksRepository repo;
 
 	/**
 	 * 投稿の一覧表示.
@@ -33,10 +33,10 @@ public class PostController {
 	@GetMapping("/posts")
 	public String posts(Model model) {
 		// 逆順で投稿をすべて取得する
-		List<Posts> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 //    Collections.reverse(list); //普通に取得してこちらの処理でもOK
-		model.addAttribute("posts", list);
-		PostForm postForm = new PostForm();
+		model.addAttribute("tasks", list);
+		TaskForm postForm = new TaskForm();
 		model.addAttribute("postForm", postForm);
 		return "/posts";
 	}
@@ -49,18 +49,18 @@ public class PostController {
 	 * @return 遷移先
 	 */
 	@PostMapping("/posts/create")
-	public String create(@Validated PostForm postForm, BindingResult bindingResult,
+	public String create(@Validated TaskForm postForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
 		if (bindingResult.hasErrors()) {
 			// エラーがある場合は投稿登録画面を返す
-			List<Posts> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 			model.addAttribute("posts", list);
 			model.addAttribute("postForm", postForm);
 			return "/posts";
 		}
 
-		Posts post = new Posts();
+		Tasks post = new Tasks();
 		post.setName(user.getName());
 		post.setTitle(postForm.getTitle());
 		post.setText(postForm.getText());
