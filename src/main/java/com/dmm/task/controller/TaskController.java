@@ -18,6 +18,7 @@ import com.dmm.task.data.entity.Tasks;
 import com.dmm.task.data.repository.TasksRepository;
 import com.dmm.task.form.TaskForm;
 import com.dmm.task.service.AccountUserDetails;
+
 @Controller
 public class TaskController {
 
@@ -30,15 +31,15 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@GetMapping("/tasks")
+	@GetMapping("/main/create/{date}")
 	public String tasks(Model model) {
-		// 逆順で投稿をすべて取得する
+
 		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 //    Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		model.addAttribute("tasks", list);
 		TaskForm postForm = new TaskForm();
 		model.addAttribute("taskForm", postForm);
-		return "/posts";
+		return "/main/create/{date}";
 	}
 
 	/**
