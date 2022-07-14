@@ -44,7 +44,7 @@ public class MainController {
 				}
 			}
 			int week = now.getDayOfWeek().getValue();
-			month.add(now);
+			month.add(now);//1月分のローカルデータを順番に全て入れる。
 
 		}
 		model.addAttribute("main", month);
