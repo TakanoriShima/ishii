@@ -1,6 +1,8 @@
 package com.dmm.task.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +33,49 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@GetMapping("/main/create/{date}")
+	@GetMapping("/main")
 	public String tasks(Model model) {
 
-		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+		final List<LocalDate> tasks = new ArrayList<>();
+
+		LocalDate now = LocalDate.now();
+		int nowMonth = now.getMonthValue();
+		int nowDay = now.getDayOfMonth();
+		int dayOfMonth = nowMonth;
+		now = now.minusDays(nowDay - 1);
+		tasks.add(now);
+		int firstWeek = now.getDayOfWeek().getValue();
+
+		while (dayOfMonth == nowMonth) {
+			now = now.plusDays(1L);
+			dayOfMonth = now.getMonthValue();
+			if (dayOfMonth != nowMonth) {
+				break;
+			}
+			if (now.getDayOfMonth() < 10) {
+				if (now.getDayOfMonth() == nowDay) {
+					System.out.print(" *" + now.getDayOfMonth());
+				} else {
+					// System.out.print(" " + now.getDayOfMonth());
+				}
+			} else {
+				if (now.getDayOfMonth() == nowDay) {
+					// System.out.print(" *" + now.getDayOfMonth());
+				} else {
+					// System.out.print(" " + now.getDayOfMonth());
+				}
+			}
+			int week = now.getDayOfWeek().getValue();
+			tasks.add(now);//1月分のローカルデータを順番に全て入れる。
+
+		}
+		model.addAttribute("tasks", tasks);
+		//List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 //    Collections.reverse(list); //普通に取得してこちらの処理でもOK
-		model.addAttribute("tasks", list);
+		//model.addAttribute("tasks", list);
 		TaskForm postForm = new TaskForm();
 		model.addAttribute("taskForm", postForm);
-		return "/main/create/{date}";
+		return "/main";
 	}
 
 	/**
@@ -49,7 +85,7 @@ public class TaskController {
 	 * @param user     ユーザー情報
 	 * @return 遷移先
 	 */
-	@PostMapping("/main/create/{date}")
+	@PostMapping("/main/edit")
 	public String create(@Validated TaskForm postForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
