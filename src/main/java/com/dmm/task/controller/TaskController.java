@@ -1,9 +1,13 @@
 package com.dmm.task.controller;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -33,48 +37,109 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
+	@GetMapping("/main/create/{date}")
+	public String create() {
+		return "/create";
+	}
+
+	@PostMapping("/main/create")
+	public String postForm() {
+
+		return "redirect:/main";
+	}
+
 	@GetMapping("/main")
-	public String tasks(Model model) {
+	public String calendar(Model model) {
+		List<List<LocalDate>> matrix = new ArrayList<>();
+		List<LocalDate> week = new ArrayList<>();
+		Map<LocalDate, Tasks> tasks = new HashMap<>();
 
-		final List<LocalDate> tasks = new ArrayList<>();
+		int firstWeek = 0;
 
+		LocalDate day = LocalDate.now().withDayOfMonth(1);
+		Month day1 = day.getMonth(); // 現在の月取得
+		int firstDay = day.lengthOfMonth();
+		// System.out.println("今月の一日は" + day);
 		LocalDate now = LocalDate.now();
-		int nowMonth = now.getMonthValue();
 		int nowDay = now.getDayOfMonth();
-		int dayOfMonth = nowMonth;
-		now = now.minusDays(nowDay - 1);
-		tasks.add(now);
-		int firstWeek = now.getDayOfWeek().getValue();
+//System.out.println(nowDay);
+		now = now.minusDays(nowDay - 1);// sunday
 
-		while (dayOfMonth == nowMonth) {
-			now = now.plusDays(1L);
-			dayOfMonth = now.getMonthValue();
-			if (dayOfMonth != nowMonth) {
+		// 16-15=1
+		firstWeek = now.getDayOfWeek().getValue();//
+		System.out.println(firstWeek);
+
+		LocalDate preDateOfMonth = now.minusDays(firstWeek);// 前月分のLocalDate
+// 曜日を表すDayOfWeekを取得し、上で取得したLocalDateに曜日の値（DayOfWeek#getValue)をマイナス
+		day = preDateOfMonth;
+
+// 1週間分の処理
+
+		for (int i = 0; i < firstDay; i++) {
+			DayOfWeek dw = day.getDayOfWeek();
+			// System.out.println(dw);
+			week.add(day);
+			System.out.println(week);
+
+			// タスク処理
+
+			day = day.plusDays(1);// adds everyoneday
+//System.out.println(week);
+			if (dw == DayOfWeek.SATURDAY) {
+				// 土曜日になると1週間の終わりと判断し、リストに格納する
+				matrix.add(week);
+
+				// 同時に、次週のための新しいListを用意する（新たにnewする）
+				week = new ArrayList<>();
+				// System.out.println(matrix);
+
+			}
+		}
+		for (int i = 0; i < 7; i++) {
+			DayOfWeek dw = day.getDayOfWeek();
+			//Month lastWeek = day.getMonth();
+			//Month nowMonth = day1;
+			// System.out.println(dw);
+			week.add(day);
+			if (dw == DayOfWeek.SATURDAY) {
+				// 土曜日になると1週間の終わりと判断し、リストに格納する
+				matrix.add(week);
+				// 同時に、次週のための新しいListを用意する（新たにnewする）
+				week = new ArrayList<>();
+				// System.out.println(matrix);
+			}
+			day = day.plusDays(1);// adds everyoneday
+		}
+		for (int i = 0; i < 7; i++) {
+			DayOfWeek dw = day.getDayOfWeek();
+			Month lastWeek = day.getMonth();
+			Month nowMonth = day1;
+			// System.out.println(dw);
+			week.add(day);
+			// System.out.println(week);
+
+			// タスク処理
+
+			day = day.plusDays(1);// adds everyoneday
+//System.out.println(week);
+			if (nowMonth != lastWeek && dw == DayOfWeek.SATURDAY) {
+				// 土曜日かつ月が先週と変わった時に処理を終わる
+				matrix.add(week);
 				break;
+				// System.out.println(matrix);
+
 			}
-			if (now.getDayOfMonth() < 10) {
-				if (now.getDayOfMonth() == nowDay) {
-					System.out.print(" *" + now.getDayOfMonth());
-				} else {
-					// System.out.print(" " + now.getDayOfMonth());
-				}
-			} else {
-				if (now.getDayOfMonth() == nowDay) {
-					// System.out.print(" *" + now.getDayOfMonth());
-				} else {
-					// System.out.print(" " + now.getDayOfMonth());
-				}
-			}
-			int week = now.getDayOfWeek().getValue();
-			tasks.add(now);//1月分のローカルデータを順番に全て入れる。
+			
 
 		}
-		model.addAttribute("tasks", tasks);
-		//List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+
+		model.addAttribute("matrix", matrix);
+
+		// List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 //    Collections.reverse(list); //普通に取得してこちらの処理でもOK
-		//model.addAttribute("tasks", list);
-		TaskForm postForm = new TaskForm();
-		model.addAttribute("taskForm", postForm);
+		// model.addAttribute("tasks", list);
+		// TaskForm postForm = new TaskForm();
+		model.addAttribute("tasks", tasks);
 		return "/main";
 	}
 
