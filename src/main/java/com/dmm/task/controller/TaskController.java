@@ -43,15 +43,21 @@ public class TaskController {
 		return "create";
 	}
 
+	@PostMapping("/main/create{date}")
+	public String postForm() {// タスクを生成（したい）
+		Tasks task = new Tasks();
+		// task.setName(task.getName());
+		task.setTitle(task.getTitle());
+		task.setText(task.getText());
+		// task.setDate(LocalDateTime.now());
 
-	@PostMapping("/main/create")
-	public String postForm() {
+		repo.save(task);
 
 		return "redirect:/main";
 	}
 
 	@GetMapping("/main")
-	public String calendar(Model model) {
+	public String calendar(Model model) {//カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
 		Map<LocalDate, Tasks> tasks = new HashMap<>();
@@ -99,8 +105,8 @@ public class TaskController {
 		}
 		for (int i = 0; i < 7; i++) {
 			DayOfWeek dw = day.getDayOfWeek();
-			//Month lastWeek = day.getMonth();
-			//Month nowMonth = day1;
+			// Month lastWeek = day.getMonth();
+			// Month nowMonth = day1;
 			// System.out.println(dw);
 			week.add(day);
 			if (dw == DayOfWeek.SATURDAY) {
@@ -131,7 +137,6 @@ public class TaskController {
 				// System.out.println(matrix);
 
 			}
-			
 
 		}
 
