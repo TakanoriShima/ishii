@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dmm.task.data.entity.Tasks;
 import com.dmm.task.data.repository.TasksRepository;
@@ -38,25 +39,37 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	
+	@GetMapping("/main/edit/{id}")//タスク編集
+	public String edit(Model model) {
+		Tasks edit = new Tasks();
+		edit.setName(edit.getName());
+		edit.setTitle(edit.getTitle());
+		edit.setText(edit.getText());
+		edit.setDate(LocalDateTime.now());
+		edit.isDone();
+		model.addAttribute("/main/edit/{id}", edit);
+		
+		return "redirect:/main";
+	}
 	@GetMapping("/main/create/{date}")
 	public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 		return "create";
 	}
 
-	@PostMapping("/main")
+	/*@PostMapping("/main")
 	public String postForm (TaskForm taskForm) {
-		// タスクを生成（したい）
+
 		Tasks task = new Tasks();
 		// task.setName(task.getName());
 		task.setTitle(task.getTitle());
 		task.setText(task.getText());
 		// task.setDate(LocalDateTime.now());
-
+		//model.addAttribute("tasks", task);
+		//model.addAttribute("tasks", postForm);
 		repo.save(task);
 
 		return "redirect:/main";
-	}
+	}*/
 
 
 	@GetMapping("/main")
@@ -125,14 +138,8 @@ public class TaskController {
 			DayOfWeek dw = day.getDayOfWeek();
 			Month lastWeek = day.getMonth();
 			Month nowMonth = day1;
-			// System.out.println(dw);
 			week.add(day);
-			// System.out.println(week);
-
-			// タスク処理
-
 			day = day.plusDays(1);// adds everyoneday
-//System.out.println(week);
 			if (nowMonth != lastWeek && dw == DayOfWeek.SATURDAY) {
 				// 土曜日かつ月が先週と変わった時に処理を終わる
 				matrix.add(week);
@@ -143,18 +150,17 @@ public class TaskController {
 
 		}
 
-		model.addAttribute("matrix", matrix);
-
+		model.addAttribute("matrix", matrix);//calendarのデータ
 		// List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
-//    Collections.reverse(list); //普通に取得してこちらの処理でもOK
+        // Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
-		model.addAttribute("tasks", tasks);
-		
+		model.addAttribute("tasks", tasks);//タスクとmain.htmlの紐付け？
+
 
 		// 逆順で投稿をすべて取得する
 
-		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
 	//	Tasks list = new Tasks();
 
 	//list.setTitle(list.getTitle());
@@ -175,7 +181,7 @@ public class TaskController {
 	 * @param user     ユーザー情報
 	 * @return 遷移先
 	 */
-	@PostMapping("/main/create")
+	@PostMapping("/main/create")//タスク登録
 	public String create(@Validated TaskForm postForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
@@ -183,18 +189,25 @@ public class TaskController {
 			// エラーがある場合は投稿登録画面を返す
 			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
 			model.addAttribute("tasks", list);
-			model.addAttribute("taskForm", postForm);
+			//model.addAttribute("tasks", postForm);
 			return "/main/create";
 		}
-
-		Tasks post = new Tasks();
+		Tasks task = new Tasks();
+		task.setName(task.getName());
+		task.setTitle(task.getTitle());
+		task.setText(task.getText());
+		task.setDate(LocalDateTime.now());
+		model.addAttribute("tasks", task);
+		//model.addAttribute("tasks", postForm);
+		/*Tasks post = new Tasks();
 		post.setName(user.getName());
 		post.setTitle(postForm.getTitle());
 		post.setText(postForm.getText());
 		post.setDate(LocalDateTime.now());
 
 		repo.save(post);
-
+		model.addAttribute("tasks", post);
+		model.addAttribute("tasks", postForm);*/
 		return "redirect:/main";
 	}
 
@@ -209,4 +222,15 @@ public class TaskController {
 		repo.deleteById(id);
 		return "redirect:/main";
 	}
+	public String calendar(Model model, @RequestParam(name = "date", defaultValue = "") String date) {
+	    // dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
+	   
+	    if(date.isEmpty()) {
+	        // main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断
+	    } else {
+	        // main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断
+	    }
+	    return "main";
+	}
+	
 }
