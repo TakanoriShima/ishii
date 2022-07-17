@@ -39,7 +39,7 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@GetMapping("/main/edit/{id}")//タスク編集
+	@PostMapping("/main/edit/{id}")//タスク編集
 	public String edit(Model model) {
 		Tasks edit = new Tasks();
 		edit.setName(edit.getName());
