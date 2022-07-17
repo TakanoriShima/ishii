@@ -38,13 +38,15 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
+	
 	@GetMapping("/main/create/{date}")
 	public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 		return "create";
 	}
 
-	@PostMapping("/main/create{date}")
-	public String postForm() {// タスクを生成（したい）
+	@PostMapping("/main")
+	public String postForm (TaskForm taskForm) {
+		// タスクを生成（したい）
 		Tasks task = new Tasks();
 		// task.setName(task.getName());
 		task.setTitle(task.getTitle());
@@ -55,6 +57,7 @@ public class TaskController {
 
 		return "redirect:/main";
 	}
+
 
 	@GetMapping("/main")
 	public String calendar(Model model) {//カレンダー表示
@@ -147,6 +150,21 @@ public class TaskController {
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
 		model.addAttribute("tasks", tasks);
+		
+
+		// 逆順で投稿をすべて取得する
+
+		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+	//	Tasks list = new Tasks();
+
+	//list.setTitle(list.getTitle());
+	//list.setText(list.getText());
+	//	repo.save(list);
+
+		//Collections.reverse(tasks); //普通に取得してこちらの処理でもOK
+		model.addAttribute("task", list);
+	//	PostForm postForm = new PostForm();
+	//	model.addAttribute("postForm", postForm);
 		return "/main";
 	}
 
@@ -157,7 +175,7 @@ public class TaskController {
 	 * @param user     ユーザー情報
 	 * @return 遷移先
 	 */
-	@PostMapping("/main/edit")
+	@PostMapping("/main/create")
 	public String create(@Validated TaskForm postForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
@@ -166,7 +184,7 @@ public class TaskController {
 			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
 			model.addAttribute("tasks", list);
 			model.addAttribute("taskForm", postForm);
-			return "/main/create/{date}";
+			return "/main/create";
 		}
 
 		Tasks post = new Tasks();
