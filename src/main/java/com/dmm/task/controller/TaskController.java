@@ -72,7 +72,6 @@ public class TaskController {
 	}*/
 
 
-	@SuppressWarnings("unchecked")
 	@GetMapping("/main")
 	public String calendar(Model model) {//カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
@@ -152,26 +151,25 @@ public class TaskController {
 		}
 
 		model.addAttribute("matrix", matrix);//calendarのデータ
-		 task = (Map<LocalDate, Tasks>) repo.findAll();//エラーが起こる
-        //Collections.reverse(task); //普通に取得してこちらの処理でもOK
+		// List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        // Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
-		model.addAttribute("tasks", task);//タスクとmain.htmlの紐付け？？<Local Date,Tasks>の型のはずなのに・
+		model.addAttribute("tasks", task);//タスクとmain.htmlの紐付け？
 
 
 		// 逆順で投稿をすべて取得する
-		//Map<LocalDate, Tasks> list = new HashMap<>();
 
-	//	Map<LocalDate ,Tasks> map = (Map<LocalDate, Tasks>) repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
+		List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "date"));
 	//	Tasks list = new Tasks();
 
 	//list.setTitle(list.getTitle());
 	//list.setText(list.getText());
 	//	repo.save(list);
-	//	System.out.println(map);
+		System.out.println();
 
 		//Collections.reverse(tasks); //普通に取得してこちらの処理でもOK
-	//	model.addAttribute("tasks", map);
+		model.addAttribute("task", list);
 	//	PostForm postForm = new PostForm();
 	//	model.addAttribute("postForm", postForm);
 		return "/main";
@@ -201,7 +199,6 @@ public class TaskController {
 		task.setText(task.getText());
 		task.setDate(LocalDateTime.now());
 		model.addAttribute("tasks", task);
-		
 		//model.addAttribute("tasks", postForm);
 		/*Tasks post = new Tasks();
 		post.setName(user.getName());
