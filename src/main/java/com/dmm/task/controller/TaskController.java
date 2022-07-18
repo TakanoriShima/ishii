@@ -76,7 +76,7 @@ public class TaskController {
 	public String calendar(Model model) {//カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
-		Map<LocalDate, Tasks> tasks = new HashMap<>();
+		Map<LocalDate, Tasks> task = new HashMap<>();
 
 		int firstWeek = 0;
 
@@ -130,7 +130,7 @@ public class TaskController {
 				matrix.add(week);
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
-				// System.out.println(matrix);
+				 System.out.println(matrix);
 			}
 			day = day.plusDays(1);// adds everyoneday
 		}
@@ -155,7 +155,7 @@ public class TaskController {
         // Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
-		model.addAttribute("tasks", tasks);//タスクとmain.htmlの紐付け？
+		model.addAttribute("tasks", task);//タスクとmain.htmlの紐付け？
 
 
 		// 逆順で投稿をすべて取得する
@@ -166,9 +166,10 @@ public class TaskController {
 	//list.setTitle(list.getTitle());
 	//list.setText(list.getText());
 	//	repo.save(list);
+		System.out.println();
 
 		//Collections.reverse(tasks); //普通に取得してこちらの処理でもOK
-		model.addAttribute("task", list);
+		model.addAttribute("tasks", list);
 	//	PostForm postForm = new PostForm();
 	//	model.addAttribute("postForm", postForm);
 		return "/main";
