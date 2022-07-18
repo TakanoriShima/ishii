@@ -72,6 +72,7 @@ public class TaskController {
 	}*/
 
 
+	@SuppressWarnings("unchecked")
 	@GetMapping("/main")
 	public String calendar(Model model) {//カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
@@ -151,11 +152,11 @@ public class TaskController {
 		}
 
 		model.addAttribute("matrix", matrix);//calendarのデータ
-		Map<LocalDate,Tasks> task = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        // Collections.reverse(list); //普通に取得してこちらの処理でもOK
+		 task = (Map<LocalDate, Tasks>) repo.findAll();//エラーが起こる
+        //Collections.reverse(task); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
-		model.addAttribute("tasks", task);//タスクとmain.htmlの紐付け？
+		model.addAttribute("tasks", task);//タスクとmain.htmlの紐付け？？<Local Date,Tasks>の型のはずなのに・
 
 
 		// 逆順で投稿をすべて取得する
