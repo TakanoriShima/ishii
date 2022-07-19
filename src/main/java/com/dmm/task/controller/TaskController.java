@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dmm.task.data.entity.Tasks;
@@ -38,18 +39,21 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@PostMapping("/main/edit/{id}") // タスク編集
-	public String edit(Model model) {
+	@RequestMapping("/main/edit/{id}") // タスク編集
+	public String edit(Model model,TasksRepository tasksRepository) {
+
 		Tasks edit = new Tasks();
+		//String title = ((Tasks) tasksRepository).getTitle();
 		edit.setTitle(((Tasks) repo).getTitle());
 		edit.setText(((Tasks) repo).getText());
 		edit.setDate(((Tasks) repo).getDate());
 		edit.setDone(((Tasks) repo).isDone());
 		System.out.println(edit);
+		//System.out.println(title);
 		repo.save(edit);
-		model.addAttribute("/main/edit/{id}", edit);
+		//model.addAttribute("/main/edit/{id}", edit);
 
-		return "redirect:/main/edit";
+		return "redirect:/main/edit/{id}";
 	}
 
 	@GetMapping("/main/create/{date}")
@@ -84,7 +88,6 @@ public class TaskController {
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
 		Map<LocalDate, Tasks> task = new HashMap<>();
-
 		List<Tasks> taskInfos = repo.findAll();
 		int firstWeek = 0;
 
@@ -189,13 +192,16 @@ public class TaskController {
 	}
 
 	public String calendar(Model model, @RequestParam(name = "date", defaultValue = "") String date) {
-		// dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
+	String	prev;
+	String	next;
+	// dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
+		System.out.println("日付は" + date);
 
 		if (date.isEmpty()) {
-			System.out.println("日付は" + date);
 			// main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断
 		} else {
-			date = "2022-06-01";
+			//System.out.println("日付は" + date);
+				date = "2022-06-01";
 			// main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断
 		}
 		return "redirect:/main";
