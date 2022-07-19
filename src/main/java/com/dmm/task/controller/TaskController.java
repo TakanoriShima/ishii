@@ -2,7 +2,6 @@ package com.dmm.task.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +30,7 @@ public class TaskController {
 
 	@Autowired
 	private TasksRepository repo;
-
+	public LocalDate date;
 	/**
 	 * 投稿の一覧表示.
 	 * 
@@ -39,38 +38,49 @@ public class TaskController {
 	 * @return 遷移先
 	 */
 	@PostMapping("/main/edit/{id}") // タスク編集
-	public String edit(@Validated TasksRepository taskRepository, Tasks tasks, TaskForm taskForm,
-			BindingResult bindingResult, @AuthenticationPrincipal AccountUserDetails user, Model model) {
+	public String edit(/*@Validated TasksRepository taskRepository,  TaskForm taskForm,
+			BindingResult bindingResult, @AuthenticationPrincipal AccountUserDetails user,*/ Model model) {
 		Tasks edit = new Tasks();
 		// edit.setName(tasks.getName());
-		edit.setTitle(tasks.getTitle());
-		edit.setText(tasks.getText());
-		edit.setDate(tasks.getDate());
-		edit.setDone(tasks.isDone());
+		edit.setTitle(((Tasks) repo).getTitle());
+		edit.setText(((Tasks) repo).getText());
+		edit.setDate(((Tasks) repo).getDate());
+		edit.setDone(((Tasks) repo).isDone());
 		System.out.println(edit);
 		repo.save(edit);
-		//model.addAttribute("/main/edit/{id}", edit);
+		model.addAttribute("/main/edit/{id}", edit);
 
-		return "redirect:/main";
+		return "redirect:/main/edit";
 	}
 
 	@GetMapping("/main/create/{date}")
-	public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-
-		return "create";
+	public String create(/*@Validated TasksRepository taskRepository,Tasks tasks, TaskForm taskForm, BindingResult bindingResult,
+			@AuthenticationPrincipal AccountUserDetails user,*/Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+		System.out.println("createのDATEは"+date);
+		this.date = date;// model.addAttribute("tasks", task);
+	//	Tasks task = new Tasks();
+	//	task.setName(user.getName());
+	//	task.setTitle(taskForm.getTitle());
+	//	task.setText(taskForm.getText());
+	//	task.setDate(date);
+		// model.addAttribute("tasks", task);
+		// model.addAttribute("tasks", postForm);
+	//repo.save(task);
+	//return "redirect:/main";
+			return "create";
 	}
 
 
 	@PostMapping("/main/create")
 	public String postForm(@Validated TasksRepository taskRepository, TaskForm taskForm, BindingResult bindingResult,
-			@AuthenticationPrincipal AccountUserDetails user, Model model) {
+			@AuthenticationPrincipal AccountUserDetails user, Model model/*, @PathVariable("date") /*@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date*/) {
 
 		Tasks task = new Tasks();
 		task.setName(user.getName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
-		task.setDate(LocalDateTime.now());
-		// model.addAttribute("tasks", task);
+		task.setDate(date);
+		System.out.println("ポストフォームのDATEは"+date);		// model.addAttribute("tasks", task);
 		// model.addAttribute("tasks", postForm);
 		repo.save(task);
 
@@ -86,30 +96,40 @@ public class TaskController {
 		List<Tasks> taskInfos = repo.findAll();
 		int firstWeek = 0;
 
-		LocalDate day = LocalDate.now().withDayOfMonth(1);
+		LocalDate day = LocalDate.now().withDayOfMonth(1);//7月1のデータ
 		Month day1 = day.getMonth(); // 現在の月取得
-		int firstDay = day.lengthOfMonth();
-		// System.out.println("今月の一日は" + day);
-		LocalDate now = LocalDate.now();
-		int nowDay = now.getDayOfMonth();
-//System.out.println(nowDay);
-		now = now.minusDays(nowDay - 1);// sunday
+		int firstDay = day.lengthOfMonth();//31 of july
+		//System.out.println("今月の一日は" + firstDay);
+		LocalDate now = LocalDate.now(); //todays Localdate
+		int nowDay = now.getDayOfMonth(); //todays date
+		now = now.minusDays(nowDay - 1);// like2022-07-01
+	//	System.out.println(now);
 
-		// 16-15=1
-		firstWeek = now.getDayOfWeek().getValue();//
-		System.out.println(firstWeek);
+		
+		firstWeek = now.getDayOfWeek().getValue();//1 mon 2 tue 3 wed...and its 5
 
-		LocalDate preDateOfMonth = now.minusDays(firstWeek);// 前月分のLocalDate
+		LocalDate preDateOfMonth = now.minusDays(firstWeek);// 前月分のLocalDate 6/26
 // 曜日を表すDayOfWeekを取得し、上で取得したLocalDateに曜日の値（DayOfWeek#getValue)をマイナス
-		day = preDateOfMonth;
+		day = preDateOfMonth;//2022-6-26 
+		//System.out.println(day);
 
 // 1週間分の処理
 
 		for (int i = 0; i < firstDay; i++) {
 			DayOfWeek dw = day.getDayOfWeek();
-			// System.out.println(dw);
+		//	 System.out.println(dw);
 			week.add(day);
-			System.out.println(week);
+		//	System.out.println(week);
+			for (int j = 0; j < taskInfos.size(); j++) {
+				//task.put(week.get(j), taskInfos.get(j));
+		    	//System.out.println("一番上のtaskInfosの日にち"+taskInfos.get(j).getDate());
+		    	//System.out.println(taskInfos);
+		    	//System.out.println("一番上のdayの日にち"+day);
+			    if(taskInfos.get(j).getDate().isEqual(day)) {
+			    	//System.out.println(taskInfos.get(j).getDate().isEqual(day));
+			    	task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+			    }// task.get(day).addAll(taskInfos);//
+			}
 
 			// タスク処理
 			/*for (int j = 0; j < taskInfos.size(); j++) {
@@ -135,13 +155,23 @@ public class TaskController {
 			// Month nowMonth = day1;
 			// System.out.println(dw);
 			week.add(day);
+			for (int j = 0; j < taskInfos.size(); j++) {
+				//task.put(week.get(j), taskInfos.get(j));
+		    	//System.out.println("taskInfosの日にち"+taskInfos.get(j).getDate());
+		    	//System.out.println(taskInfos);
+		    	//System.out.println("真ん中dayの日にち"+day);
+			    if(taskInfos.get(j).getDate().isEqual(day)) {
+			    	//System.out.println(taskInfos.get(j).getDate().isEqual(day));
+			    	task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+			    }// task.get(day).addAll(taskInfos);//
+			}
 
 			if (dw == DayOfWeek.SATURDAY) {
 				// 土曜日になると1週間の終わりと判断し、リストに格納する
 				matrix.add(week);
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
-				System.out.println(matrix);
+			//	System.out.println(matrix);
 			}
 			/*for (int j = 0; j < taskInfos.size(); j++) {
 				task.put(week.get(j), taskInfos.get(j));
@@ -154,12 +184,19 @@ public class TaskController {
 			Month lastWeek = day.getMonth();
 			Month nowMonth = day1;
 			week.add(day);
+	    	//System.out.println(taskInfos.size());
 
 			for (int j = 0; j < taskInfos.size(); j++) {
-				task.put(week.get(j), taskInfos.get(j));
-				// task.get(day).addAll(taskInfos);//
+				//task.put(week.get(j), taskInfos.get(j));
+		    	//System.out.println(taskInfos.get(j).getDate());
+		    	//System.out.println(taskInfos);
+		    	//System.out.println(day);
+			    if(taskInfos.get(j).getDate().isEqual(day)) {
+			    	//System.out.println(taskInfos.get(j).getDate().isEqual(day));
+			    	task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+			    }// task.get(day).addAll(taskInfos);//
 			}
-			 System.out.println(taskInfos.size());
+			// System.out.println(taskInfos.size());
 			day = day.plusDays(1);// adds everyoneday
 			// System.out.println(day);
 
@@ -169,16 +206,16 @@ public class TaskController {
 				break;
 
 			}
-			model.addAttribute("tasks", task);// タスクとmain.htmlの紐付け？
 
 		}
+		model.addAttribute("tasks", task);// タスクとmain.htmlの紐付け？
 
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		// List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 		// Collections.reverse(list); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("tasks", list);
 		// TaskForm postForm = new TaskForm();
-		System.out.println(task);
+		//System.out.println(task);
 
 		// 逆順で投稿をすべて取得する
 
@@ -188,7 +225,6 @@ public class TaskController {
 		// list.setTitle(list.getTitle());
 		// list.setText(list.getText());
 		// repo.save(list);
-		System.out.println();
 
 		// Collections.reverse(tasks); //普通に取得してこちらの処理でもOK
 		// model.addAttribute("task", list);
