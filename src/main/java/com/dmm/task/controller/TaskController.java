@@ -5,10 +5,8 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,8 +92,13 @@ public class TaskController {
 	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {// カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
-		Map<LocalDate, Tasks> task = new HashMap<>();
+		//Map<LocalDate, Tasks> task = new HashMap<>();
 		List<Tasks> taskInfos = repo.findAll();
+		MultiValueMap<LocalDate, Tasks> task = new LinkedMultiValueMap<LocalDate, Tasks>();
+
+
+		//Map<LocalDate,Tasks> taskInfos = repo.findAll();
+
 		int firstWeek = 0;
 		LocalDate day;
 		LocalDate now;
@@ -126,7 +131,7 @@ public class TaskController {
 			week.add(day);
 			for (int j = 0; j < taskInfos.size(); j++) {
 				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
 				}
 			}
 
@@ -148,7 +153,7 @@ public class TaskController {
 			for (int j = 0; j < taskInfos.size(); j++) {
 
 				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
 				}
 			}
 
@@ -169,7 +174,7 @@ public class TaskController {
 
 			for (int j = 0; j < taskInfos.size(); j++) {
 				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.put(day, taskInfos.get(j)); // 当該日に合致していたら追加
+					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
 				}
 			}
 
@@ -184,6 +189,7 @@ public class TaskController {
 
 		}
 		model.addAttribute("tasks", task);
+		System.out.println(task);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
 	}
