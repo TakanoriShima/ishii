@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,6 +40,9 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
+	
+
+	
 	@GetMapping("/main/edit/{id}") // タスク編集
 	public String edit(Model model, @PathVariable Integer id) {
 		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
@@ -49,7 +52,7 @@ public class TaskController {
 	}
 
 	@PostMapping("/main/edit/{id}") // タスク編集
-	public String post(Model model, @PathVariable Integer id, TaskForm taskForm) {
+	public String postEdit(Model model, @PathVariable Integer id, TaskForm taskForm) {
 
 		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
 
@@ -70,13 +73,12 @@ public class TaskController {
 	}
 
 	@PostMapping("/main/create")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	//@PreAuthorize("hasRole('ROLE_ADMIN')")
 
-	public String postForm(@Validated TasksRepository taskRepository, TaskForm taskForm, BindingResult bindingResult,
+	public String post(@Validated TasksRepository taskRepository, TaskForm taskForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 
 		Tasks task = new Tasks();
-
 		task.setName(user.getName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
@@ -89,15 +91,14 @@ public class TaskController {
 	}
 
 	@GetMapping("/main")
-	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {// カレンダー表示
+	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date, @Param("name") TasksRepository tasksRepository) {// カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
-		//Map<LocalDate, Tasks> task = new HashMap<>();
+		// Map<LocalDate, Tasks> task = new HashMap<>();
 		List<Tasks> taskInfos = repo.findAll();
 		MultiValueMap<LocalDate, Tasks> task = new LinkedMultiValueMap<LocalDate, Tasks>();
 
-
-		//Map<LocalDate,Tasks> taskInfos = repo.findAll();
+		// Map<LocalDate,Tasks> taskInfos = repo.findAll();
 		boolean onlyOnce = true;
 		int firstWeek = 0;
 		LocalDate day;
@@ -123,13 +124,13 @@ public class TaskController {
 		int nowDay = now.getDayOfMonth(); // todays date
 		now = now.minusDays(nowDay - 1);// like2022-07-01
 		firstWeek = now.getDayOfWeek().getValue();// 1 mon 2 tue 3 wed...and its 5 , 7 sun
-		
-		if(firstWeek != 7){
-		LocalDate preDateOfMonth = now.minusDays(firstWeek);//
-		day = preDateOfMonth;
+
+		if (firstWeek != 7) {
+			LocalDate preDateOfMonth = now.minusDays(firstWeek);//
+			day = preDateOfMonth;
 		}
 		for (int i = 0; i < firstDay; i++) {
-		
+
 			DayOfWeek dw = day.getDayOfWeek();
 			week.add(day);
 			for (int j = 0; j < taskInfos.size(); j++) {
@@ -139,12 +140,12 @@ public class TaskController {
 			}
 
 			day = day.plusDays(1);// adds everyoneday
-	
+
 			if (dw == DayOfWeek.SATURDAY) {
-				
+
 				// 土曜日になると1週間の終わりと判断し、リストに格納する
 				matrix.add(week);
-			
+
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
 
@@ -169,18 +170,18 @@ public class TaskController {
 
 				// 土曜日になると1週間の終わりと判断し、リストに格納する
 				matrix.add(week);
-				if(30 <= day.getDayOfMonth()  && day.lengthOfMonth() == day.getDayOfMonth()) {
-					onlyOnce =false;
-							break;
+
+				if (30 <= day.getDayOfMonth() && day.lengthOfMonth() == day.getDayOfMonth()) {
+					onlyOnce = false;
+					break;
 				}
-				
-				if(nowMonth != lastWeek) {
-				
 
-				onlyOnce = false;
+				if (nowMonth != lastWeek) {
 
-				break;
-			}
+					onlyOnce = false;
+
+					break;
+				}
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
 			}
@@ -188,7 +189,7 @@ public class TaskController {
 		}
 
 		for (int i = 0; i < 7; i++) {
-			if(onlyOnce == false) {
+			if (onlyOnce == false) {
 				break;
 			}
 			DayOfWeek dw = day.getDayOfWeek();
@@ -212,6 +213,10 @@ public class TaskController {
 			}
 
 		}
+
+
+//List<Tasks> tasker = tasksRepository.findByDateBetween("user-name");
+//tasker;
 		model.addAttribute("tasks", task);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
