@@ -98,7 +98,7 @@ public class TaskController {
 
 
 		//Map<LocalDate,Tasks> taskInfos = repo.findAll();
-
+		boolean onlyOnce = true;
 		int firstWeek = 0;
 		LocalDate day;
 		LocalDate now;
@@ -118,15 +118,18 @@ public class TaskController {
 		model.addAttribute("prev", day.minusMonths(1));
 		model.addAttribute("next", day.plusMonths(1));
 
-		Month day1 = day.getMonth();// 現在の月取得
+		Month day1 = day.getMonth();// 現在の月取得4
 		int firstDay = day.lengthOfMonth();// 31 of july
 		int nowDay = now.getDayOfMonth(); // todays date
 		now = now.minusDays(nowDay - 1);// like2022-07-01
-		firstWeek = now.getDayOfWeek().getValue();// 1 mon 2 tue 3 wed...and its 5
-		LocalDate preDateOfMonth = now.minusDays(firstWeek);// 前月分のLocalDate 6/26
-		day = preDateOfMonth;// 2022-6-26
-
+		firstWeek = now.getDayOfWeek().getValue();// 1 mon 2 tue 3 wed...and its 5 , 7 sun
+		
+		if(firstWeek != 7){
+		LocalDate preDateOfMonth = now.minusDays(firstWeek);//
+		day = preDateOfMonth;
+		}
 		for (int i = 0; i < firstDay; i++) {
+		
 			DayOfWeek dw = day.getDayOfWeek();
 			week.add(day);
 			for (int j = 0; j < taskInfos.size(); j++) {
@@ -136,10 +139,12 @@ public class TaskController {
 			}
 
 			day = day.plusDays(1);// adds everyoneday
+	
 			if (dw == DayOfWeek.SATURDAY) {
+				
 				// 土曜日になると1週間の終わりと判断し、リストに格納する
 				matrix.add(week);
-
+			
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
 
@@ -148,6 +153,9 @@ public class TaskController {
 		}
 		for (int i = 0; i < 7; i++) {
 			DayOfWeek dw = day.getDayOfWeek();
+
+			Month lastWeek = day.getMonth();
+			Month nowMonth = day1;
 			week.add(day);
 
 			for (int j = 0; j < taskInfos.size(); j++) {
@@ -158,15 +166,31 @@ public class TaskController {
 			}
 
 			if (dw == DayOfWeek.SATURDAY) {
+
 				// 土曜日になると1週間の終わりと判断し、リストに格納する
 				matrix.add(week);
+				if(30 <= day.getDayOfMonth()  && day.lengthOfMonth() == day.getDayOfMonth()) {
+					onlyOnce =false;
+							break;
+				}
+				
+				if(nowMonth != lastWeek) {
+				
+
+				onlyOnce = false;
+
+				break;
+			}
 				// 同時に、次週のための新しいListを用意する（新たにnewする）
 				week = new ArrayList<>();
 			}
-
-			day = day.plusDays(1);// adds everyoneday
+			day = day.plusDays(1);
 		}
+
 		for (int i = 0; i < 7; i++) {
+			if(onlyOnce == false) {
+				break;
+			}
 			DayOfWeek dw = day.getDayOfWeek();
 			Month lastWeek = day.getMonth();
 			Month nowMonth = day1;
@@ -189,7 +213,6 @@ public class TaskController {
 
 		}
 		model.addAttribute("tasks", task);
-		System.out.println(task);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
 	}
