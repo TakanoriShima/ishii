@@ -42,16 +42,7 @@ public class TaskController {
 	 */
 	@GetMapping("/main/edit/{id}") // タスク編集
 	public String edit(Model model, @PathVariable Integer id) {
-
-		// Tasks edit = new Tasks();
 		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
-		// String title = ((Tasks) repo).getTitle(task);
-		/*
-		 * edit.setTitle(task.getTitle());//インスタンスをビューに転送？ edit.setName(task.getName());
-		 * edit.setText(task.getText()); edit.setDate(task.getDate());
-		 * edit.setDone(task.isDone()); System.out.println(task); //
-		 * System.out.println(title); repo.save(edit);
-		 */
 		model.addAttribute("task", task);
 
 		return "edit";
@@ -59,15 +50,11 @@ public class TaskController {
 
 	@PostMapping("/main/edit/{id}") // タスク編集
 	public String post(Model model, @PathVariable Integer id, TaskForm taskForm) {
-		System.out.println("post に飛んだ" + id);
 
-		// Tasks edit = new Tasks();
 		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
-		System.out.println("task " + task);
-		// System.out.println("isDOne ha"+ taskForm.isDone());// String title = ((Tasks)
+
 		task.setTitle(taskForm.getTitle());// 元のタスクの値をにゅりょくされた値にすり替える
 		task.setText(taskForm.getText());
-		//task.setDate(taskForm.getDate());
 		task.setDone(taskForm.isDone());
 
 		repo.save(task);
@@ -77,7 +64,6 @@ public class TaskController {
 
 	@GetMapping("/main/create/{date}")
 	public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-		System.out.println("createのDATEは" + date);
 		this.date = date;
 
 		return "create";
@@ -90,15 +76,13 @@ public class TaskController {
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 
 		Tasks task = new Tasks();
+
 		task.setName(user.getName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
-		 task.setDone(taskForm.isDone());
+		task.setDone(taskForm.isDone());
 		task.setDate(date);
-		System.out.println("ポストフォームのDATEは" + date);
-		System.out.println("ポストフォームのDATEは" + task);
 
-		// model.addAttribute("tasks", task);
 		repo.save(task);
 
 		return "redirect:/main";
@@ -113,11 +97,8 @@ public class TaskController {
 		int firstWeek = 0;
 		LocalDate day;
 		LocalDate now;
-		//int minus = 1;
-		// date1 = LocalDate.now().minusMonths(minus).withDayOfMonth(1);
-		System.out.println("date1 は" + date);
+
 		now = LocalDate.now(); // todays Localdate
-		System.out.println("now は" + now);
 
 		if (date == null) {
 			day = LocalDate.now().withDayOfMonth(1);// 7月1のデータ
@@ -125,25 +106,18 @@ public class TaskController {
 		} else {
 			day = date;
 			now = date;
-			System.out.println("now は" + now);
 
-			// now = LocalDate.now().minusMonths(minus);
-			// System.out.println("日付は" + date);
 			// main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断
 		}
-		// model.addAttribute("month",day);
 		model.addAttribute("month", day.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault()));
 		model.addAttribute("prev", day.minusMonths(1));
 		model.addAttribute("next", day.plusMonths(1));
 
 		Month day1 = day.getMonth();// 現在の月取得
-		System.out.println(day1);
 		int firstDay = day.lengthOfMonth();// 31 of july
 		int nowDay = now.getDayOfMonth(); // todays date
 		now = now.minusDays(nowDay - 1);// like2022-07-01
-
 		firstWeek = now.getDayOfWeek().getValue();// 1 mon 2 tue 3 wed...and its 5
-
 		LocalDate preDateOfMonth = now.minusDays(firstWeek);// 前月分のLocalDate 6/26
 		day = preDateOfMonth;// 2022-6-26
 
@@ -210,8 +184,6 @@ public class TaskController {
 
 		}
 		model.addAttribute("tasks", task);
-		System.out.println(date);
-		System.out.println(date);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
 	}
@@ -235,16 +207,4 @@ public class TaskController {
 		repo.deleteById(id);
 		return "redirect:/main";
 	}
-
-	/*
-	 * public String calendar(Model model, @RequestParam(name = "date", defaultValue
-	 * = "") String date) { String prev; String next; //
-	 * dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
-	 * System.out.println("日付は" + date);
-	 * 
-	 * if (date.isEmpty()) { // main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断 } else { //
-	 * System.out.println("日付は" + date); date = "2022-06-01"; //
-	 * main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断 } return "redirect:/main"; }
-	 */
-
 }
