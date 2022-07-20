@@ -113,7 +113,7 @@ public class TaskController {
 		int firstWeek = 0;
 		LocalDate day;
 		LocalDate now;
-		int minus = 1;
+		//int minus = 1;
 		// date1 = LocalDate.now().minusMonths(minus).withDayOfMonth(1);
 		System.out.println("date1 は" + date);
 		now = LocalDate.now(); // todays Localdate
