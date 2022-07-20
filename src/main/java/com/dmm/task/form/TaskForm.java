@@ -12,4 +12,8 @@ public class TaskForm {
 	// textへのバリデーション設定を追加
 	@Size(min = 1, max = 200)
 	private String text;
+	
+	private boolean done;
+	
+	//private LocalDate date;
 }

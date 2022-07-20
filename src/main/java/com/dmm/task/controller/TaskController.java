@@ -3,13 +3,16 @@ package com.dmm.task.controller;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,8 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dmm.task.data.entity.Tasks;
 import com.dmm.task.data.repository.TasksRepository;
@@ -30,7 +31,7 @@ import com.dmm.task.service.AccountUserDetails;
 public class TaskController {
 
 	@Autowired
-	private TasksRepository repo;
+	public TasksRepository repo;
 	public LocalDate date;
 
 	/**
@@ -39,21 +40,39 @@ public class TaskController {
 	 * @param model モデル
 	 * @return 遷移先
 	 */
-	@RequestMapping("/main/edit/{id}") // タスク編集
-	public String edit(Model model,TasksRepository tasksRepository) {
+	@GetMapping("/main/edit/{id}") // タスク編集
+	public String edit(Model model, @PathVariable Integer id) {
 
-		Tasks edit = new Tasks();
-		//String title = ((Tasks) tasksRepository).getTitle();
-		edit.setTitle(((Tasks) repo).getTitle());
-		edit.setText(((Tasks) repo).getText());
-		edit.setDate(((Tasks) repo).getDate());
-		edit.setDone(((Tasks) repo).isDone());
-		System.out.println(edit);
-		//System.out.println(title);
-		repo.save(edit);
-		//model.addAttribute("/main/edit/{id}", edit);
+		// Tasks edit = new Tasks();
+		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
+		// String title = ((Tasks) repo).getTitle(task);
+		/*
+		 * edit.setTitle(task.getTitle());//インスタンスをビューに転送？ edit.setName(task.getName());
+		 * edit.setText(task.getText()); edit.setDate(task.getDate());
+		 * edit.setDone(task.isDone()); System.out.println(task); //
+		 * System.out.println(title); repo.save(edit);
+		 */
+		model.addAttribute("task", task);
 
-		return "redirect:/main/edit/{id}";
+		return "edit";
+	}
+
+	@PostMapping("/main/edit/{id}") // タスク編集
+	public String post(Model model, @PathVariable Integer id, TaskForm taskForm) {
+		System.out.println("post に飛んだ" + id);
+
+		// Tasks edit = new Tasks();
+		Tasks task = repo.getById(id);// idからrepoを使って編集しようとしているtasksインスタンスを取得
+		System.out.println("task " + task);
+		// System.out.println("isDOne ha"+ taskForm.isDone());// String title = ((Tasks)
+		task.setTitle(taskForm.getTitle());// 元のタスクの値をにゅりょくされた値にすり替える
+		task.setText(taskForm.getText());
+		//task.setDate(taskForm.getDate());
+		task.setDone(taskForm.isDone());
+
+		repo.save(task);
+
+		return "redirect:/main";
 	}
 
 	@GetMapping("/main/create/{date}")
@@ -65,36 +84,61 @@ public class TaskController {
 	}
 
 	@PostMapping("/main/create")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+
 	public String postForm(@Validated TasksRepository taskRepository, TaskForm taskForm, BindingResult bindingResult,
-			@AuthenticationPrincipal AccountUserDetails user,
-			Model model/*
-						 * , @PathVariable("date") /*@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate
-						 * date
-						 */) {
+			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 
 		Tasks task = new Tasks();
 		task.setName(user.getName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
+		 task.setDone(taskForm.isDone());
 		task.setDate(date);
-		System.out.println("ポストフォームのDATEは" + date); // model.addAttribute("tasks", task);
+		System.out.println("ポストフォームのDATEは" + date);
+		System.out.println("ポストフォームのDATEは" + task);
+
+		// model.addAttribute("tasks", task);
 		repo.save(task);
 
 		return "redirect:/main";
 	}
 
 	@GetMapping("/main")
-	public String calendar(Model model) {// カレンダー表示
+	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {// カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
 		Map<LocalDate, Tasks> task = new HashMap<>();
 		List<Tasks> taskInfos = repo.findAll();
 		int firstWeek = 0;
+		LocalDate day;
+		LocalDate now;
+		int minus = 1;
+		// date1 = LocalDate.now().minusMonths(minus).withDayOfMonth(1);
+		System.out.println("date1 は" + date);
+		now = LocalDate.now(); // todays Localdate
+		System.out.println("now は" + now);
 
-		LocalDate day = LocalDate.now().withDayOfMonth(1);// 7月1のデータ
-		Month day1 = day.getMonth(); // 現在の月取得
+		if (date == null) {
+			day = LocalDate.now().withDayOfMonth(1);// 7月1のデータ
+// main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断
+		} else {
+			day = date;
+			now = date;
+			System.out.println("now は" + now);
+
+			// now = LocalDate.now().minusMonths(minus);
+			// System.out.println("日付は" + date);
+			// main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断
+		}
+		// model.addAttribute("month",day);
+		model.addAttribute("month", day.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault()));
+		model.addAttribute("prev", day.minusMonths(1));
+		model.addAttribute("next", day.plusMonths(1));
+
+		Month day1 = day.getMonth();// 現在の月取得
+		System.out.println(day1);
 		int firstDay = day.lengthOfMonth();// 31 of july
-		LocalDate now = LocalDate.now(); // todays Localdate
 		int nowDay = now.getDayOfMonth(); // todays date
 		now = now.minusDays(nowDay - 1);// like2022-07-01
 
@@ -166,7 +210,8 @@ public class TaskController {
 
 		}
 		model.addAttribute("tasks", task);
-
+		System.out.println(date);
+		System.out.println(date);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
 	}
@@ -191,20 +236,15 @@ public class TaskController {
 		return "redirect:/main";
 	}
 
-	public String calendar(Model model, @RequestParam(name = "date", defaultValue = "") String date) {
-	String	prev;
-	String	next;
-	// dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
-		System.out.println("日付は" + date);
-
-		if (date.isEmpty()) {
-			// main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断
-		} else {
-			//System.out.println("日付は" + date);
-				date = "2022-06-01";
-			// main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断
-		}
-		return "redirect:/main";
-	}
+	/*
+	 * public String calendar(Model model, @RequestParam(name = "date", defaultValue
+	 * = "") String date) { String prev; String next; //
+	 * dateには、main.htmlで指定した「yyyy-MM-dd（例：2022-07-01など）」が入ってくる
+	 * System.out.println("日付は" + date);
+	 * 
+	 * if (date.isEmpty()) { // main.htmlで＜＞ボタンが押されなかった⇒今月のカレンダーと判断 } else { //
+	 * System.out.println("日付は" + date); date = "2022-06-01"; //
+	 * main.htmlで＜＞ボタンが押された⇒前月 or 来月のカレンダーと判断 } return "redirect:/main"; }
+	 */
 
 }
