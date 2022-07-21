@@ -79,7 +79,7 @@ public class TaskController {
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 
 		Tasks task = new Tasks();
-		task.setName(user.getName());
+		task.setName(user.getUser().getUserName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
 		task.setDone(taskForm.isDone());
@@ -205,10 +205,12 @@ public class TaskController {
 		System.out.println("ログインユーザー名: " + user.getName());
 
 		// ログインしているユーザーが管理者ならば
-		if (user.getName().equals("admin-name")) {
+//		if (user.getName().equals("admin-name")) {
+
+		if (user.getUser().getRoleName().equals("ADMIN")) {
 			taskInfos = repo.findAllBetween(start, end);
 		} else {
-			taskInfos = repo.findByNameBetween(start, end, user.getName());
+			taskInfos = repo.findByNameBetween(start, end, user.getUser().getUserName());
 		}
 
 		// taskにタスク一覧を追加
