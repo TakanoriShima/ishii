@@ -91,11 +91,11 @@ public class TaskController {
 	}
 
 	@GetMapping("/main")
-	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date, @Param("name") TasksRepository tasksRepository) {// カレンダー表示
+	public String calendar(Model model, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+			@Param("name") TasksRepository tasksRepository, @AuthenticationPrincipal AccountUserDetails user) {// カレンダー表示
 		List<List<LocalDate>> matrix = new ArrayList<>();
 		List<LocalDate> week = new ArrayList<>();
-		// Map<LocalDate, Tasks> task = new HashMap<>();
-		List<Tasks> taskInfos = repo.findAll();
+		List<Tasks> taskInfos = new ArrayList<>();
 		MultiValueMap<LocalDate, Tasks> task = new LinkedMultiValueMap<LocalDate, Tasks>();
 
 		// Map<LocalDate,Tasks> taskInfos = repo.findAll();
@@ -129,15 +129,13 @@ public class TaskController {
 			LocalDate preDateOfMonth = now.minusDays(firstWeek);//
 			day = preDateOfMonth;
 		}
+
+		LocalDate start = day;
+
 		for (int i = 0; i < firstDay; i++) {
 
 			DayOfWeek dw = day.getDayOfWeek();
 			week.add(day);
-			for (int j = 0; j < taskInfos.size(); j++) {
-				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
-				}
-			}
 
 			day = day.plusDays(1);// adds everyoneday
 
@@ -158,13 +156,6 @@ public class TaskController {
 			Month lastWeek = day.getMonth();
 			Month nowMonth = day1;
 			week.add(day);
-
-			for (int j = 0; j < taskInfos.size(); j++) {
-
-				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
-				}
-			}
 
 			if (dw == DayOfWeek.SATURDAY) {
 
@@ -197,12 +188,6 @@ public class TaskController {
 			Month nowMonth = day1;
 			week.add(day);
 
-			for (int j = 0; j < taskInfos.size(); j++) {
-				if (taskInfos.get(j).getDate().isEqual(day)) {
-					task.add(day, taskInfos.get(j)); // 当該日に合致していたら追加
-				}
-			}
-
 			day = day.plusDays(1);// adds everyoneday
 
 			if (nowMonth != lastWeek && dw == DayOfWeek.SATURDAY) {
@@ -214,9 +199,23 @@ public class TaskController {
 
 		}
 
+		// カレンダー最終日
+		LocalDate end = matrix.get(matrix.size() - 1).get(6);
 
-//List<Tasks> tasker = tasksRepository.findByDateBetween("user-name");
-//tasker;
+		System.out.println("ログインユーザー名: " + user.getName());
+
+		// ログインしているユーザーが管理者ならば
+		if (user.getName().equals("admin-name")) {
+			taskInfos = repo.findAllBetween(start, end);
+		} else {
+			taskInfos = repo.findByNameBetween(start, end, user.getName());
+		}
+
+		// taskにタスク一覧を追加
+		for (int j = 0; j < taskInfos.size(); j++) {
+			task.add(taskInfos.get(j).getDate(), taskInfos.get(j)); // 当該日に合致していたら追加
+		}
+
 		model.addAttribute("tasks", task);
 		model.addAttribute("matrix", matrix);// calendarのデータ
 		return "/main";
